@@ -1,0 +1,9 @@
+[package]
+name = "otus_rp"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+members = ["smart_home"]
+
+resolver = "3"
