@@ -16,7 +16,7 @@ fn main() {
     let devices = [
         Device::Thermometer(thermo),
         Device::Socket(socket),
-        Device::Thermometer(Thermometer::new(Units::Celsius(0.0))),
+        Device::Thermometer(Thermometer::new(Units::default())),
         Device::Socket(Socket::new(110.0)),
         Device::Socket(Socket::new(220.0)),
     ];
