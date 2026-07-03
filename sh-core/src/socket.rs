@@ -43,11 +43,7 @@ impl Socket {
     /// Returns the actual voltage output: the configured voltage when on, or `0.0` when off.
     #[must_use]
     pub fn output(&self) -> f64 {
-        if self.is_on() {
-            self.voltage()
-        } else {
-            0.0
-        }
+        if self.is_on() { self.voltage() } else { 0.0 }
     }
 }
 
