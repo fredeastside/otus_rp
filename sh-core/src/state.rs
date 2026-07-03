@@ -3,6 +3,8 @@
 //! This module provides a simple abstraction for entities that can be toggled
 //! between an "On" and "Off" state, common in home automation or hardware interfaces.
 
+use std::fmt::Display;
+
 /// Represents the operational state of a device.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum State {
@@ -10,6 +12,15 @@ pub enum State {
     On,
     /// The device is inactive or powered off.
     Off,
+}
+
+impl Display for State {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            State::On => write!(f, "On"),
+            State::Off => write!(f, "Off"),
+        }
+    }
 }
 
 /// A trait for devices that can be toggled between an [`State::On`] and [`State::Off`] state.
@@ -22,7 +33,7 @@ pub enum State {
 /// Implementing `Switchable` for a simple `LightBulb` struct:
 ///
 /// ```
-/// use smart_home::state::{State, Switchable};
+/// use sh_core::state::{State, Switchable};
 ///
 /// struct LightBulb {
 ///     current_state: State,

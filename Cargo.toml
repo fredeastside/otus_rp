@@ -1,9 +1,12 @@
-[package]
-name = "otus_rp"
-version = "0.1.0"
-edition = "2024"
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
 
 [workspace]
-members = ["smart_home"]
-
 resolver = "3"
+members = [
+    "sh-core",
+    "sh-cli"
+]

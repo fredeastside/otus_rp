@@ -6,7 +6,7 @@
 //! # Examples
 //!
 //! ```
-//! use smart_home::temperature::Units;
+//! use sh_core::temperature::Units;
 //!
 //! // Create a temperature in Celsius
 //! let mut temp = Units::Celsius(20.0);
@@ -29,11 +29,12 @@ use std::fmt;
 /// # Examples
 ///
 /// ```
-/// use smart_home::temperature::Units;
+/// use sh_core::temperature::Units;
 ///
 /// let temp = Units::Celsius(25.0);
 /// assert_eq!(temp.value(), 25.0);
 /// ```
+#[derive(Debug)]
 pub enum Units {
     /// Temperature in Celsius
     Celsius(f64),
@@ -47,7 +48,7 @@ impl Units {
     /// # Examples
     ///
     /// ```
-    /// use smart_home::temperature::Units;
+    /// use sh_core::temperature::Units;
     ///
     /// let temp = Units::Celsius(20.0);
     /// assert_eq!(temp.value(), 20.0);
@@ -55,6 +56,7 @@ impl Units {
     /// let temp = Units::Fahrenheit(68.0);
     /// assert_eq!(temp.value(), 68.0);
     /// ```
+    #[must_use]
     pub fn value(&self) -> f64 {
         match self {
             Units::Celsius(value) | Units::Fahrenheit(value) => *value,
@@ -69,7 +71,7 @@ impl Units {
     /// # Examples
     ///
     /// ```
-    /// use smart_home::temperature::Units;
+    /// use sh_core::temperature::Units;
     ///
     /// let mut temp = Units::Fahrenheit(32.0);
     /// temp.celsius();
@@ -90,7 +92,7 @@ impl Units {
     /// # Examples
     ///
     /// ```
-    /// use smart_home::temperature::Units;
+    /// use sh_core::temperature::Units;
     ///
     /// let mut temp = Units::Celsius(0.0);
     /// temp.fahrenheit();
@@ -123,8 +125,8 @@ impl Default for Units {
 impl fmt::Display for Units {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Units::Celsius(value) => write!(f, "{}°C", value),
-            Units::Fahrenheit(value) => write!(f, "{}°F", value),
+            Units::Celsius(value) => write!(f, "{value}°C"),
+            Units::Fahrenheit(value) => write!(f, "{value}°F"),
         }
     }
 }
@@ -140,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_units_fahrenheit_value() {
-        assert_eq!(Units::Fahrenheit(68.0).value(), 68.0)
+        assert_eq!(Units::Fahrenheit(68.0).value(), 68.0);
     }
 
     #[test]

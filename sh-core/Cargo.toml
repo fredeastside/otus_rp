@@ -1,0 +1,10 @@
+[package]
+name = "sh-core"
+version = "0.1.0"
+edition = "2024"
+
+[lints]
+workspace = true
+
+[dependencies]
+uuid = { version = "1.23.4", features = ["v7"] }

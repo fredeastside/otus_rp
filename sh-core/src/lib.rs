@@ -3,8 +3,10 @@
 //! This crate provides structures for representing buildings, rooms, and various smart devices
 //! like sockets and thermometers.
 
-pub mod building;
 pub mod device;
+pub mod error;
+pub mod home;
+pub mod report;
 pub mod room;
 pub mod socket;
 pub mod state;

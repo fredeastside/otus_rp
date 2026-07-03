@@ -1,0 +1,10 @@
+[package]
+name = "sh-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sh-core = { path = "../sh-core" }
+
+[lints]
+workspace = true
