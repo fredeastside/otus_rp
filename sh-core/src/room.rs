@@ -11,7 +11,7 @@ pub struct Room {
 }
 
 impl Room {
-    /// Creates a new room with a given set of devices.
+    /// Creates a new empty room with the given name.
     #[must_use]
     pub fn new(name: &str) -> Self {
         Self {
@@ -30,13 +30,18 @@ impl Room {
         self.devices.insert(device.name().to_string(), device);
     }
 
-    /// Returns a reference to a device by its index.
+    /// Inserts a device under an explicit key, replacing any existing entry.
+    pub fn insert_device(&mut self, name: impl Into<String>, device: impl Into<Device>) {
+        self.devices.insert(name.into(), device.into());
+    }
+
+    /// Returns a reference to a device by its name.
     #[must_use]
     pub fn get_device(&self, name: &str) -> Option<&Device> {
         self.devices.get(name)
     }
 
-    /// Returns a mutable reference to a device by its index.
+    /// Returns a mutable reference to a device by its name.
     pub fn get_mut_device(&mut self, name: &str) -> Option<&mut Device> {
         self.devices.get_mut(name)
     }
@@ -55,10 +60,8 @@ impl Room {
 
 impl Display for Room {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Room: {}", self.name)?;
-        self.devices
-            .values()
-            .try_for_each(|d| writeln!(f, "-- {}: \n{d}", d.kind()))
+        write!(f, "Room: {}", self.name)?;
+        self.devices.values().try_for_each(|d| write!(f, "\n{d}"))
     }
 }
 
@@ -106,7 +109,7 @@ mod tests {
         let device = room.get_mut_device(&s_name).expect("should exist");
         device.on();
         let device = room.get_device(&s_name).expect("should exist");
-        assert_eq!(device.to_string(), "Socket: On, Voltage: 220V");
+        assert_eq!(device.to_string(), "Socket (socket1): On, Voltage: 220V");
     }
 
     #[test]

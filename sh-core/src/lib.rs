@@ -6,6 +6,7 @@
 pub mod device;
 pub mod error;
 pub mod home;
+pub mod macros;
 pub mod report;
 pub mod room;
 pub mod socket;

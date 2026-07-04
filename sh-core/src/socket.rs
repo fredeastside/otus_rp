@@ -32,9 +32,7 @@ impl Socket {
         &self.name
     }
 
-    /// Returns the voltage of the socket.
-    ///
-    /// Returns 0.0 if the socket is off.
+    /// Returns the configured voltage of the socket, regardless of its state.
     #[must_use]
     pub fn voltage(&self) -> f64 {
         self.voltage
@@ -66,12 +64,13 @@ impl fmt::Display for Socket {
         match self.state {
             State::On => write!(
                 f,
-                "{}: {}, Voltage: {}V",
+                "{} ({}): {}, Voltage: {}V",
                 self.kind(),
+                self.name(),
                 self.state,
                 self.voltage()
             ),
-            State::Off => write!(f, "{}: {}", self.kind(), self.state),
+            State::Off => write!(f, "{} ({}): {}", self.kind(), self.name(), self.state),
         }
     }
 }
@@ -102,30 +101,30 @@ mod tests {
     }
 
     #[test]
-    fn test_voltage_is_zero_when_off() {
+    fn test_output_is_zero_when_off() {
         let socket = Socket::new("socket1", 220.0);
-        assert_eq!(socket.voltage(), 220.0);
-        assert_eq!(socket.output(), 0.0);
+        assert!((socket.voltage() - 220.0).abs() < f64::EPSILON);
+        assert!((socket.output() - 0.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_voltage_is_correct_when_on() {
         let mut socket = Socket::new("socket1", 220.0);
         socket.on();
-        assert_eq!(socket.voltage(), 220.0);
-        assert_eq!(socket.output(), 220.0);
+        assert!((socket.voltage() - 220.0).abs() < f64::EPSILON);
+        assert!((socket.output() - 220.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_display_when_off() {
         let socket = Socket::new("socket1", 220.0);
-        assert_eq!(format!("{socket}"), "Socket: Off");
+        assert_eq!(format!("{socket}"), "Socket (socket1): Off");
     }
 
     #[test]
     fn test_display_when_on() {
         let mut socket = Socket::new("socket1", 220.0);
         socket.on();
-        assert_eq!(format!("{socket}"), "Socket: On, Voltage: 220V");
+        assert_eq!(format!("{socket}"), "Socket (socket1): On, Voltage: 220V");
     }
 }

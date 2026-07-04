@@ -137,22 +137,22 @@ mod tests {
 
     #[test]
     fn test_units_celsius_value() {
-        assert_eq!(Units::Celsius(20.0).value(), 20.0);
+        assert!((Units::Celsius(20.0).value() - 20.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_units_fahrenheit_value() {
-        assert_eq!(Units::Fahrenheit(68.0).value(), 68.0);
+        assert!((Units::Fahrenheit(68.0).value() - 68.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_celsius_to_fahrenheit() {
-        assert_eq!(Units::Celsius(0.0).fahrenheit().value(), 32.0);
+        assert!((Units::Celsius(0.0).fahrenheit().value() - 32.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_fahrenheit_to_celsius() {
-        assert_eq!(Units::Fahrenheit(32.0).celsius().value(), 0.0);
+        assert!((Units::Fahrenheit(32.0).celsius().value() - 0.0).abs() < f64::EPSILON);
     }
 
     #[test]

@@ -13,7 +13,7 @@ pub struct Home {
 }
 
 impl Home {
-    /// Creates a new building with a given set of rooms.
+    /// Creates a new empty home with no rooms.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -28,13 +28,13 @@ impl Home {
         self.rooms.insert(room.name().to_string(), room);
     }
 
-    /// Returns a reference to a room by its index.
+    /// Returns a reference to a room by its name.
     #[must_use]
     pub fn get_room(&self, name: &str) -> Option<&Room> {
         self.rooms.get(name)
     }
 
-    /// Returns a mutable reference to a room by its index.
+    /// Returns a mutable reference to a room by its name.
     pub fn get_mut_room(&mut self, name: &str) -> Option<&mut Room> {
         self.rooms.get_mut(name)
     }
@@ -70,9 +70,8 @@ impl Default for Home {
 
 impl Display for Home {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.rooms
-            .values()
-            .try_for_each(|r| writeln!(f, "Room: \n{r}"))
+        write!(f, "Home:")?;
+        self.rooms.values().try_for_each(|r| write!(f, "\n{r}"))
     }
 }
 
@@ -140,7 +139,7 @@ mod tests {
                 .get_device(&s_name)
                 .expect("Device should exist")
                 .to_string(),
-            "Socket: On, Voltage: 220V"
+            "Socket (socket1): On, Voltage: 220V"
         );
     }
 

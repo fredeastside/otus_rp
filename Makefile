@@ -11,7 +11,7 @@ test:
 .PHONY: lint
 lint:
 	@echo "Running linters..."
-	@cargo clippy
+	@cargo clippy --all-targets --all-features -- -D warnings
 
 .PHONY: fmt
 fmt:

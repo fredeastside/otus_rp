@@ -67,8 +67,15 @@ impl Switchable for Thermometer {
 impl fmt::Display for Thermometer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.state {
-            State::On => write!(f, "{}: {}, Temp: {}", self.kind(), self.state, self.value),
-            State::Off => write!(f, "{}: {}", self.kind(), self.state),
+            State::On => write!(
+                f,
+                "{} ({}): {}, Temp: {}",
+                self.kind(),
+                self.name(),
+                self.state,
+                self.value
+            ),
+            State::Off => write!(f, "{} ({}): {}", self.kind(), self.name(), self.state),
         }
     }
 }
@@ -102,26 +109,29 @@ mod tests {
     fn test_celsius_conversion() {
         let mut thermo = Thermometer::new("thermometer1", Units::Fahrenheit(32.0));
         thermo.celsius();
-        assert_eq!(thermo.value().value(), 0.0);
+        assert!((thermo.value().value() - 0.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_fahrenheit_conversion() {
         let mut thermo = Thermometer::new("thermometer1", Units::Celsius(0.0));
         thermo.fahrenheit();
-        assert_eq!(thermo.value().value(), 32.0);
+        assert!((thermo.value().value() - 32.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn test_display_when_off() {
         let thermo = Thermometer::new("thermometer1", Units::Celsius(25.0));
-        assert_eq!(format!("{thermo}"), "Thermometer: Off");
+        assert_eq!(format!("{thermo}"), "Thermometer (thermometer1): Off");
     }
 
     #[test]
     fn test_display_when_on() {
         let mut thermo = Thermometer::new("thermometer1", Units::Celsius(25.0));
         thermo.on();
-        assert_eq!(format!("{thermo}"), "Thermometer: On, Temp: 25°C");
+        assert_eq!(
+            format!("{thermo}"),
+            "Thermometer (thermometer1): On, Temp: 25°C"
+        );
     }
 }
