@@ -9,4 +9,4 @@ resolver = "3"
 members = [
     "sh-core",
     "sh-cli"
-]
+, "sh-socket"]
