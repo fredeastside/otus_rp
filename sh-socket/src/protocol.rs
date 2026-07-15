@@ -193,3 +193,103 @@ pub fn read_frame(r: &mut impl Read) -> Result<Vec<u8>, ProtocolError> {
     r.read_exact(&mut payload)?;
     Ok(payload)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn round_trips_request() {
+        let all = [Request::On, Request::Off, Request::GetPower];
+        for req in all {
+            let encoded = req.encode();
+            assert_eq!(Request::decode(&encoded).unwrap(), req);
+        }
+    }
+
+    #[test]
+    fn round_trips_response() {
+        let all = [
+            Response::Ack,
+            Response::Power(42.5),
+            Response::Failure("some error".to_string()),
+        ];
+        for res in all {
+            let encoded = res.encode();
+            assert_eq!(Response::decode(&encoded).unwrap(), res);
+        }
+        let res = Response::Power(f64::NAN);
+        let encoded = res.encode();
+        let decoded = Response::decode(&encoded).unwrap();
+        if let Response::Power(v) = decoded {
+            assert!(f64::is_nan(v));
+        } else {
+            panic!("incorrect response type");
+        }
+    }
+
+    #[test]
+    fn rejects_malformed_request() {
+        struct Case {
+            name: &'static str,
+            input: &'static [u8],
+            expected: fn(&ProtocolError) -> bool,
+        }
+        let cases = [
+            Case {
+                name: "truncated payload",
+                input: &[],
+                expected: |e| matches!(e, ProtocolError::TruncatedPayload),
+            },
+            Case {
+                name: "unknown tag",
+                input: &[5],
+                expected: |e| matches!(e, ProtocolError::UnknownTag),
+            },
+            Case {
+                name: "length mismatch",
+                input: &[5, 0],
+                expected: |e| matches!(e, ProtocolError::LengthMismatch),
+            },
+        ];
+        for tc in cases {
+            let e = Request::decode(tc.input).unwrap_err();
+            assert!((tc.expected)(&e), "{}", tc.name);
+        }
+    }
+
+    #[test]
+    fn rejects_malformed_response() {
+        struct Case {
+            name: &'static str,
+            input: &'static [u8],
+            expected: fn(&ProtocolError) -> bool,
+        }
+        let cases = [
+            Case {
+                name: "truncated payload",
+                input: &[],
+                expected: |e| matches!(e, ProtocolError::TruncatedPayload),
+            },
+            Case {
+                name: "unknown tag",
+                input: &[5],
+                expected: |e| matches!(e, ProtocolError::UnknownTag),
+            },
+            Case {
+                name: "length mismatch",
+                input: &[1, 0],
+                expected: |e| matches!(e, ProtocolError::LengthMismatch),
+            },
+            Case {
+                name: "invalid utf",
+                input: &[2, 255],
+                expected: |e| matches!(e, ProtocolError::InvalidUtf8(_)),
+            },
+        ];
+        for tc in cases {
+            let e = Response::decode(tc.input).unwrap_err();
+            assert!((tc.expected)(&e), "{}", tc.name);
+        }
+    }
+}
