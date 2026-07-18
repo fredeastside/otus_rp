@@ -79,7 +79,12 @@ impl Decode for Response {
     fn decode(data: &[u8]) -> Result<Self, ProtocolError> {
         let (&tag, rest) = data.split_first().ok_or(ProtocolError::TruncatedPayload)?;
         match tag {
-            0 => Ok(Response::Ack),
+            0 => {
+                if !rest.is_empty() {
+                    return Err(ProtocolError::LengthMismatch);
+                }
+                Ok(Response::Ack)
+            }
             1 => {
                 let value: [u8; 8] = rest.try_into().map_err(|_| ProtocolError::LengthMismatch)?;
                 let power = f64::from_be_bytes(value);
@@ -248,7 +253,7 @@ mod tests {
             },
             Case {
                 name: "length mismatch",
-                input: &[5, 0],
+                input: &[0, 0],
                 expected: |e| matches!(e, ProtocolError::LengthMismatch),
             },
         ];
@@ -282,6 +287,11 @@ mod tests {
                 expected: |e| matches!(e, ProtocolError::LengthMismatch),
             },
             Case {
+                name: "length mismatch when only tag",
+                input: &[0, 99],
+                expected: |e| matches!(e, ProtocolError::LengthMismatch),
+            },
+            Case {
                 name: "invalid utf",
                 input: &[2, 255],
                 expected: |e| matches!(e, ProtocolError::InvalidUtf8(_)),
@@ -290,6 +300,109 @@ mod tests {
         for tc in cases {
             let e = Response::decode(tc.input).unwrap_err();
             assert!((tc.expected)(&e), "{}", tc.name);
+        }
+    }
+
+    #[test]
+    fn write_read_round_trip() {
+        let mut buf = Vec::new();
+        let payload = Request::On.encode();
+        write_frame(&mut buf, &payload).unwrap();
+        let got = read_frame(&mut &buf[..]).unwrap();
+        assert_eq!(payload, got);
+    }
+
+    #[test]
+    fn test_write_frame() {
+        let mut buf = Vec::new();
+        let payload = [0xAA, 0xBB];
+        write_frame(&mut buf, &payload).unwrap();
+        assert_eq!(buf, [0, 0, 0, 2, 0xAA, 0xBB]);
+    }
+
+    #[test]
+    fn rejects_malformed_read_frame() {
+        struct Case {
+            name: &'static str,
+            input: &'static [u8],
+            expected: fn(&ProtocolError) -> bool,
+        }
+        let cases = [
+            Case {
+                name: "short prefix",
+                input: &[0u8; 3],
+                expected: |e| matches!(e, ProtocolError::Io(_)),
+            },
+            Case {
+                name: "payload missing",
+                input: &[0, 0, 0, 4],
+                expected: |e| matches!(e, ProtocolError::Io(_)),
+            },
+        ];
+        for mut tc in cases {
+            let err = read_frame(&mut tc.input).unwrap_err();
+            assert!((tc.expected)(&err), "{}", tc.name);
+        }
+    }
+
+    #[test]
+    fn rejects_malformed_write_frame() {
+        struct FailingWriter;
+        impl Write for FailingWriter {
+            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe))
+            }
+
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+        assert!(matches!(
+            write_frame(&mut FailingWriter, &[1, 2, 3]).unwrap_err(),
+            ProtocolError::Io(_)
+        ));
+    }
+
+    #[test]
+    #[allow(invalid_from_utf8)]
+    fn test_error_display() {
+        struct Case {
+            name: &'static str,
+            input: ProtocolError,
+            expected: &'static str,
+        }
+        let cases = [
+            Case {
+                name: "unknown tag",
+                input: ProtocolError::UnknownTag,
+                expected: "unknown tag",
+            },
+            Case {
+                name: "truncated payload",
+                input: ProtocolError::TruncatedPayload,
+                expected: "truncated payload",
+            },
+            Case {
+                name: "length mismatch",
+                input: ProtocolError::LengthMismatch,
+                expected: "length mismatch",
+            },
+            Case {
+                name: "utf error",
+                input: ProtocolError::InvalidUtf8({
+                    let bad = &[0xFF];
+                    std::str::from_utf8(bad).unwrap_err()
+                }),
+                expected: "invalid utf8",
+            },
+            Case {
+                name: "io error",
+                input: ProtocolError::Io(std::io::Error::from(std::io::ErrorKind::Other)),
+                expected: "io error",
+            },
+        ];
+        for tc in cases {
+            assert_eq!(format!("{}", tc.input), tc.expected, "{}", tc.name);
         }
     }
 }
